@@ -55,12 +55,12 @@ var UIController = (function () {
 
     addTodo: function (todoObj) {
       var html, newHtml;
-      console.log(todoObj.id);
       // Create HTML string with placeholder text that will be inserted into the DOM
-      html = '<div class="todo-list" id="id-01"><label class="checkbox-container"><input type="checkbox"><span class="checkmark"></span><span class="text"> %todoString%</span></label><div class="img-container"><img class="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
+      html = '<div class="todo-list" id="%id%"><label class="checkbox-container"><input type="checkbox"><span class="checkmark"></span><span class="text"> %todoString%</span></label><div class="img-container"><img class="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
 
       // Replace the %todoString% placeholder text with the todo Object description
       newHtml = html.replace('%todoString%', todoObj.description);
+      newHtml = newHtml.replace('%id%', todoObj.id);
 
       // Get the todo list container for inserting the Html string into
       var todoList = document.querySelector(classNames.todoList);
