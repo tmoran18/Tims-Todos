@@ -7,7 +7,6 @@ var todoController = (function () {
     this.id = id;
     this.description = description;
   };
-
   // The array where the Todos will be stored.
   var allTodos = [];
 
@@ -25,18 +24,11 @@ var todoController = (function () {
 
       // Create new todo
       newTodo = new Todo(ID, description);
-
       // Push new todo into array
       allTodos.push(newTodo);
-
       // Return the new object
       return newTodo;
     },
-
-    testing: function () {
-      console.log(allTodos);
-    }
-
   };
 })();
 
@@ -45,16 +37,14 @@ var todoController = (function () {
 
 // UI Controller
 var UIController = (function () {
-  // Local
-
   // An Object to hold the class names for selecting
   var classNames = {
     todoInputText: '.add-todo-text',
     todoInputBtn: '.add-todo-button',
-    todoList: '.todo-list'
+    todoList: '.todo-list-container',
+    deleteIcon: '.delete-icon'
   };
 
-  // Global
   return {
     // Get the input from text field and return it as an object
     getInput: function () {
@@ -64,11 +54,19 @@ var UIController = (function () {
     },
 
     addTodo: function (todoObj) {
-      // Get the UL for todo list container
+      var html, newHtml;
+      console.log(todoObj.id);
+      // Create HTML string with placeholder text that will be inserted into the DOM
+      html = '<div class="todo-list" id="id-01"><label class="checkbox-container"><input type="checkbox"><span class="checkmark"></span><span class="text"> %todoString%</span></label><div class="img-container"><img class="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
+
+      // Replace the %todoString% placeholder text with the todo Object description
+      newHtml = html.replace('%todoString%', todoObj.description);
+
+      // Get the todo list container for inserting the Html string into
       var todoList = document.querySelector(classNames.todoList);
 
-      // Add the todo object description into the list
-      todoList.insertAdjacentHTML('afterend', `<li>${todoObj.description}</li>`);
+      // Insert the todo object description into todo container
+      todoList.insertAdjacentHTML('beforeend', newHtml);
     },
 
     // Makes the class Names function public so the Global controller can access
@@ -85,7 +83,7 @@ var UIController = (function () {
 })();
 
 
-// GLOBAL Controller
+// App Controller
 var controller = (function (todoCtrl, UIctrl) {
 
   // Function to hold all event listeners - will be run in init()
@@ -94,17 +92,18 @@ var controller = (function (todoCtrl, UIctrl) {
     var classNames = UIctrl.getClassNames();
 
     // Add item function will run if submit button is clicked
-    document.querySelector(classNames.todoInputBtn).addEventListener('click', ctrlAddItem);
+    document.querySelector(classNames.todoInputBtn).addEventListener('click', ctrlAddTodo);
 
     // Add item function will run if enter (key13) is pressed
     document.addEventListener('keypress', function (e) {
       if (e.keyCode === 13) {
-        ctrlAddItem();
+        ctrlAddTodo();
       }
     });
+    document.querySelector(classNames.todoList).addEventListener('click', ctrlDeleteTodo);
   };
 
-  ctrlAddItem = function () {
+  ctrlAddTodo = function () {
     var input, newTodo;
 
     // 1. Input value received from the getInput function in UIController
@@ -118,6 +117,13 @@ var controller = (function (todoCtrl, UIctrl) {
       UIctrl.clearField();
     }
   };
+
+  var ctrlDeleteTodo = function (e) {
+    console.log(e.target.parentNode.parentNode);
+
+  };
+
+
 
   return {
     // Init function to run any locally scoped functions in controller
