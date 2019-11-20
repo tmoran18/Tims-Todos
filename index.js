@@ -29,6 +29,26 @@ var todoController = (function () {
       // Return the new object
       return newTodo;
     },
+
+    deleteTodo: function (id) {
+      var ids, index;
+
+      // Returns a new array with all the current ids in it
+      ids = allTodos.map(function (current) {
+        return current.id;
+      });
+      // The index location in the array of the passed in id number for the todo object
+      index = ids.indexOf(id);
+
+      // If the id number is not equal to 1 remove the id(index) from the array
+      if (index !== -1) {
+        allTodos.splice(index, 1);
+      }
+
+    },
+    testing: function () {
+      console.log(allTodos);
+    }
   };
 })();
 
@@ -42,7 +62,8 @@ var UIController = (function () {
     todoInputText: '.add-todo-text',
     todoInputBtn: '.add-todo-button',
     todoList: '.todo-list-container',
-    deleteIcon: '.delete-icon'
+    deleteIcon: '.delete-icon',
+    date: '.date'
   };
 
   return {
@@ -56,9 +77,9 @@ var UIController = (function () {
     addTodo: function (todoObj) {
       var html, newHtml;
       // Create HTML string with placeholder text that will be inserted into the DOM
-      html = '<div class="todo-list" id="%id%"><label class="checkbox-container"><input type="checkbox"><span class="checkmark"></span><span class="text"> %todoString%</span></label><div class="img-container"><img class="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
+      html = '<div class="todo-list" id="%id%"><label class="checkbox-container"><input type="checkbox" id="checkbox"><span class="checkmark"></span><span class="text" id="test"> %todoString%</span></label><div class="img-container"><img class="delete-icon" id="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
 
-      // Replace the %todoString% placeholder text with the todo Object description
+      // Replace the %todoString% and %id% placeholder text with the todo Object description
       newHtml = html.replace('%todoString%', todoObj.description);
       newHtml = newHtml.replace('%id%', todoObj.id);
 
@@ -67,6 +88,28 @@ var UIController = (function () {
 
       // Insert the todo object description into todo container
       todoList.insertAdjacentHTML('beforeend', newHtml);
+    },
+
+    deleteTodo: function (selectorID) {
+      // Traverse up DOM to remove the child element
+      var el = document.getElementById(selectorID)
+      el.parentNode.removeChild(el);
+    },
+
+    lineThrough: function () {
+      console.log('Line through function in UI');
+    },
+
+    displayDate: function () {
+      var now, day, months, month, year;
+
+      now = new Date();
+
+      months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      day = now.getDate();
+      month = now.getMonth();
+      year = now.getFullYear();
+      document.querySelector(classNames.date).textContent = `${day} ${months[month]} ${year}`;
     },
 
     // Makes the class Names function public so the Global controller can access
@@ -101,11 +144,11 @@ var controller = (function (todoCtrl, UIctrl) {
       }
     });
     document.querySelector(classNames.todoList).addEventListener('click', ctrlDeleteTodo);
+    document.querySelector('.checkbox-container').addEventListener('click', ctrlLineThroughTodo);
   };
 
   ctrlAddTodo = function () {
     var input, newTodo;
-
     // 1. Input value received from the getInput function in UIController
     input = UIctrl.getInput();
     if (input.todoDescription !== "") {
@@ -119,16 +162,28 @@ var controller = (function (todoCtrl, UIctrl) {
   };
 
   var ctrlDeleteTodo = function (e) {
-    console.log(e.target.parentNode.parentNode);
-
+    var deleteIconID = "delete-icon";
+    // Delete the Todo only if the X is clicked
+    if (e.target.id === deleteIconID) {
+      var itemID = parseInt(e.target.parentNode.parentNode.id);
+      // Delete the item from the data structure
+      todoCtrl.deleteTodo(itemID);
+      // Delete the item from the UI
+      UIctrl.deleteTodo(itemID);
+    }
   };
 
+  var ctrlLineThroughTodo = function (e) {
+    var todoText = document.getElementById('text');
 
+    console.log(todoText);
+  };
 
   return {
     // Init function to run any locally scoped functions in controller
     init: function () {
       console.log("App has started");
+      UIctrl.displayDate();
       setupEventListeners();
     }
   };
