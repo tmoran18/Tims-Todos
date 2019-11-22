@@ -77,7 +77,7 @@ var UIController = (function () {
     addTodo: function (todoObj) {
       var html, newHtml;
       // Create HTML string with placeholder text that will be inserted into the DOM
-      html = '<div class="todo-list" id="%id%"><label class="checkbox-container"><input type="checkbox" id="checkbox"><span class="checkmark"></span><span class="text" id="test"> %todoString%</span></label><div class="img-container"><img class="delete-icon" id="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
+      html = '<div class="todo-list" id="%id%"><label class="checkbox-container"><input type="checkbox" id="checkbox"><span class="checkmark"></span><span class="text" id="text"> %todoString%</span></label><div class="img-container"><img class="delete-icon" id="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
 
       // Replace the %todoString% and %id% placeholder text with the todo Object description
       newHtml = html.replace('%todoString%', todoObj.description);
@@ -96,15 +96,20 @@ var UIController = (function () {
       el.parentNode.removeChild(el);
     },
 
-    lineThrough: function () {
-      console.log('Line through function in UI');
+    // Gets the span text and the checkbox, checks if checkbox is check, if so line through
+    lineThroughTodo: function (todoContainer) {
+      var todoText = todoContainer.querySelector("#text");
+      var checkbox = todoContainer.querySelector("#checkbox");
+      if (checkbox.checked) {
+        todoText.style.textDecoration = "line-through";
+      } else {
+        todoText.style.textDecoration = "none";
+      }
     },
 
     displayDate: function () {
       var now, day, months, month, year;
-
       now = new Date();
-
       months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
       day = now.getDate();
       month = now.getMonth();
@@ -128,7 +133,6 @@ var UIController = (function () {
 
 // App Controller
 var controller = (function (todoCtrl, UIctrl) {
-
   // Function to hold all event listeners - will be run in init()
   var setupEventListeners = function () {
     // Gives access to the classnames in UI controller
@@ -144,7 +148,7 @@ var controller = (function (todoCtrl, UIctrl) {
       }
     });
     document.querySelector(classNames.todoList).addEventListener('click', ctrlDeleteTodo);
-    document.querySelector('.checkbox-container').addEventListener('click', ctrlLineThroughTodo);
+    document.querySelector(classNames.todoList).addEventListener('change', ctrlLineThroughTodo);
   };
 
   ctrlAddTodo = function () {
@@ -174,9 +178,10 @@ var controller = (function (todoCtrl, UIctrl) {
   };
 
   var ctrlLineThroughTodo = function (e) {
-    var todoText = document.getElementById('text');
-
-    console.log(todoText);
+    // Get the todo container
+    var todoContainer = e.target.parentNode;
+    // Put a line through the todo span text
+    UIctrl.lineThroughTodo(todoContainer);
   };
 
   return {
