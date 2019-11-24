@@ -8,7 +8,7 @@ var todoController = (function () {
     this.description = description;
   };
   // The array where the Todos will be stored.
-  var allTodos = [];
+  var allTodos = JSON.parse(localStorage.getItem('todos')) || [];
 
   return {
     // Add the todo to the array
@@ -25,36 +25,34 @@ var todoController = (function () {
       newTodo = new Todo(ID, description);
       // Push new todo into array
       allTodos.push(newTodo);
-      localStorage.setItem('todo', JSON.stringify(allTodos));
+      localStorage.setItem('todos', JSON.stringify(allTodos));
       // Return the new object
       return newTodo;
     },
 
 
+
+
     deleteTodo: function (id) {
       var ids, index;
-
       // Returns a new array with all the current ids in it
       ids = allTodos.map(function (current) {
         return current.id;
       });
       // The index location in the array of the passed in id number for the todo object
       index = ids.indexOf(id);
-
       // If the id number is not equal to 1 remove the id(index) from the array
       if (index !== -1) {
         allTodos.splice(index, 1);
       }
-      localStorage.setItem('todo', JSON.stringify(allTodos));
+      localStorage.setItem('todos', JSON.stringify(allTodos));
     },
-
+    testing: function () {
+      console.log(this.getSavedTodos());
+      console.log(allTodos);
+    },
     getSavedTodos: function () {
-      var newTodosArray = new Array;
-      var allTodosStorage = localStorage.getItem('todo');
-      if (allTodosStorage !== null) {
-        newTodosArray = JSON.parse(allTodosStorage);
-      }
-      return newTodosArray;
+      return allTodos;
     },
   };
 })();
@@ -93,8 +91,6 @@ var UIController = (function () {
       // Get the todo list container for inserting the Html string into
       var todoList = document.querySelector(classNames.todoList);
 
-
-
       // Insert the todo object description into todo container
       todoList.insertAdjacentHTML('beforeend', newHtml);
     },
@@ -105,20 +101,20 @@ var UIController = (function () {
       el.parentNode.removeChild(el);
     },
 
-    showSavedTodos: function (test) {
+    showSavedTodos: function (savedTodos) {
       var html, newHtml;
 
       html = '<div class="todo-list" id="%id%"><label class="checkbox-container"><input type="checkbox" id="checkbox"><span class="checkmark"></span><span class="text" id="text"> %todoString%</span></label><div class="img-container"><img class="delete-icon" id="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
-      for (var i = 0; i < test.length; i++) {
-        console.log(test[i].id + test[i].description);
-        newHtml = html.replace('%todoString%', test[i].description);
-        newHtml = newHtml.replace('%id%', test[i].id);
+      for (var i = 0; i < savedTodos.length; i++) {
+        newHtml = html.replace('%todoString%', savedTodos[i].description);
+        newHtml = newHtml.replace('%id%', savedTodos[i].id);
 
         var todoList = document.querySelector(classNames.todoList);
         todoList.insertAdjacentHTML('beforeend', newHtml);
 
       }
     },
+
 
     // Gets the span text and the checkbox, checks if checkbox is check, if so line through
     lineThroughTodo: function (todoContainer) {
@@ -175,10 +171,6 @@ var controller = (function (todoCtrl, UIctrl) {
     document.querySelector(classNames.todoList).addEventListener('change', ctrlLineThroughTodo);
   };
 
-  ctrlTest = function () {
-    var test = todoCtrl.getSavedTodos();
-    console.log(UIctrl.showSavedTodos(test));
-  };
 
   ctrlAddTodo = function () {
     var input, newTodo;
@@ -200,10 +192,15 @@ var controller = (function (todoCtrl, UIctrl) {
     if (e.target.id === deleteIconID) {
       var itemID = parseInt(e.target.parentNode.parentNode.id);
       // Delete the item from the data structure
-      todoCtrl.addTodo(todoCtrl.getTodoArray);
+      todoCtrl.deleteTodo(itemID);
       // Delete the item from the UI
       UIctrl.deleteTodo(itemID);
     }
+  };
+
+  var ctrlSavedTodos = function () {
+    var savedTodos = todoCtrl.getSavedTodos();
+    UIctrl.showSavedTodos(savedTodos);
   };
 
   var ctrlLineThroughTodo = function (e) {
@@ -221,7 +218,7 @@ var controller = (function (todoCtrl, UIctrl) {
       console.log("App has started");
       UIctrl.displayDate();
       setupEventListeners();
-      ctrlTest();
+      ctrlSavedTodos();
     }
   };
 
