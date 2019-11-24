@@ -21,14 +21,15 @@ var todoController = (function () {
       } else {
         ID = 0;
       }
-
       // Create new todo
       newTodo = new Todo(ID, description);
       // Push new todo into array
       allTodos.push(newTodo);
+      localStorage.setItem('todo', JSON.stringify(allTodos));
       // Return the new object
       return newTodo;
     },
+
 
     deleteTodo: function (id) {
       var ids, index;
@@ -44,11 +45,17 @@ var todoController = (function () {
       if (index !== -1) {
         allTodos.splice(index, 1);
       }
-
+      localStorage.setItem('todo', JSON.stringify(allTodos));
     },
-    testing: function () {
-      console.log(allTodos);
-    }
+
+    getSavedTodos: function () {
+      var newTodosArray = new Array;
+      var allTodosStorage = localStorage.getItem('todo');
+      if (allTodosStorage !== null) {
+        newTodosArray = JSON.parse(allTodosStorage);
+      }
+      return newTodosArray;
+    },
   };
 })();
 
@@ -86,6 +93,8 @@ var UIController = (function () {
       // Get the todo list container for inserting the Html string into
       var todoList = document.querySelector(classNames.todoList);
 
+
+
       // Insert the todo object description into todo container
       todoList.insertAdjacentHTML('beforeend', newHtml);
     },
@@ -94,6 +103,21 @@ var UIController = (function () {
       // Traverse up DOM to remove the child element
       var el = document.getElementById(selectorID)
       el.parentNode.removeChild(el);
+    },
+
+    showSavedTodos: function (test) {
+      var html, newHtml;
+
+      html = '<div class="todo-list" id="%id%"><label class="checkbox-container"><input type="checkbox" id="checkbox"><span class="checkmark"></span><span class="text" id="text"> %todoString%</span></label><div class="img-container"><img class="delete-icon" id="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
+      for (var i = 0; i < test.length; i++) {
+        console.log(test[i].id + test[i].description);
+        newHtml = html.replace('%todoString%', test[i].description);
+        newHtml = newHtml.replace('%id%', test[i].id);
+
+        var todoList = document.querySelector(classNames.todoList);
+        todoList.insertAdjacentHTML('beforeend', newHtml);
+
+      }
     },
 
     // Gets the span text and the checkbox, checks if checkbox is check, if so line through
@@ -151,6 +175,11 @@ var controller = (function (todoCtrl, UIctrl) {
     document.querySelector(classNames.todoList).addEventListener('change', ctrlLineThroughTodo);
   };
 
+  ctrlTest = function () {
+    var test = todoCtrl.getSavedTodos();
+    console.log(UIctrl.showSavedTodos(test));
+  };
+
   ctrlAddTodo = function () {
     var input, newTodo;
     // 1. Input value received from the getInput function in UIController
@@ -171,7 +200,7 @@ var controller = (function (todoCtrl, UIctrl) {
     if (e.target.id === deleteIconID) {
       var itemID = parseInt(e.target.parentNode.parentNode.id);
       // Delete the item from the data structure
-      todoCtrl.deleteTodo(itemID);
+      todoCtrl.addTodo(todoCtrl.getTodoArray);
       // Delete the item from the UI
       UIctrl.deleteTodo(itemID);
     }
@@ -184,12 +213,15 @@ var controller = (function (todoCtrl, UIctrl) {
     UIctrl.lineThroughTodo(todoContainer);
   };
 
+
+
   return {
     // Init function to run any locally scoped functions in controller
     init: function () {
       console.log("App has started");
       UIctrl.displayDate();
       setupEventListeners();
+      ctrlTest();
     }
   };
 
