@@ -3,9 +3,10 @@
 var todoController = (function () {
 
   // Function constructor for the todo's. This will make each todo enter an object.
-  var Todo = function (id, description) {
+  var Todo = function (id, description, checkbox) {
     this.id = id;
     this.description = description;
+    this.checkbox = checkbox
   };
   // The array where the Todos will be stored.
   var allTodos = JSON.parse(localStorage.getItem('todos')) || [];
@@ -13,8 +14,10 @@ var todoController = (function () {
   return {
     // Add the todo to the array
     addTodo: function (description) {
-      var newTodo, ID;
+      var newTodo, ID, checkbox;
 
+      
+      checkbox = false;
       //Create new ID
       if (allTodos.length > 0) {
         ID = allTodos[allTodos.length - 1].id + 1;
@@ -22,16 +25,13 @@ var todoController = (function () {
         ID = 0;
       }
       // Create new todo
-      newTodo = new Todo(ID, description);
+      newTodo = new Todo(ID, description, checkbox);
       // Push new todo into array
       allTodos.push(newTodo);
       localStorage.setItem('todos', JSON.stringify(allTodos));
       // Return the new object
       return newTodo;
     },
-
-
-
 
     deleteTodo: function (id) {
       var ids, index;
@@ -47,13 +47,20 @@ var todoController = (function () {
       }
       localStorage.setItem('todos', JSON.stringify(allTodos));
     },
+
     testing: function () {
       console.log(this.getSavedTodos());
       console.log(allTodos);
     },
-    getSavedTodos: function () {
-      return allTodos;
+
+    getSavedTodos: function (checkboxArray) {
+
+      
+      console.log(allTodos[0].checkbox);
+      console.log(checkboxArray);
     },
+
+    
   };
 })();
 
@@ -169,8 +176,13 @@ var controller = (function (todoCtrl, UIctrl) {
     });
     document.querySelector(classNames.todoList).addEventListener('click', ctrlDeleteTodo);
     document.querySelector(classNames.todoList).addEventListener('change', ctrlLineThroughTodo);
+    
+    // Listen for checkbox being checked
+    document.querySelector(classNames.todoList).addEventListener('change', ctrlCheckboxState);
+
   };
 
+  
 
   ctrlAddTodo = function () {
     var input, newTodo;
@@ -198,10 +210,29 @@ var controller = (function (todoCtrl, UIctrl) {
     }
   };
 
-  var ctrlSavedTodos = function () {
-    var savedTodos = todoCtrl.getSavedTodos();
-    UIctrl.showSavedTodos(savedTodos);
+  // var ctrlSavedTodos = function () {
+  //   var savedTodos = todoCtrl.getSavedTodos();
+  //   // document.querySelector('.todo-list-container').addEventListener('change', saveCheckbox);
+  //   // function saveCheckbox() {
+  //   //   var checkboxs = document.querySelectorAll('#checkbox');
+  //   //   for (let i = 0; i < checkboxs.length; i++) {
+  //   //     // console.log(savedTodos[i].checkbox);
+  //   //     savedTodos[i].checkbox.push(checkboxs[i].checked);
+  //   //     // savedTodos.push(checkbox[i].checked);
+  //   //   }
+  //   //   localStorage.setItem('savedTodos', JSON.stringify(savedTodos));
+  //   // }
+  //   UIctrl.showSavedTodos(savedTodos);
+  // };
+
+   var ctrlCheckboxState = function () {
+    var checkboxArray = [];
+    // Push all the checkboxs into an array
+    checkboxArray.push(document.querySelectorAll('#checkbox'));
+    // Pass the array up to the get saved todos functions
+    todoCtrl.getSavedTodos(checkboxArray);
   };
+
 
   var ctrlLineThroughTodo = function (e) {
     // Get the todo container
@@ -218,7 +249,8 @@ var controller = (function (todoCtrl, UIctrl) {
       console.log("App has started");
       UIctrl.displayDate();
       setupEventListeners();
-      ctrlSavedTodos();
+      // ctrlSavedTodos();
+      ctrlCheckboxState();
     }
   };
 
@@ -232,3 +264,10 @@ function. */
 
 // The init function is placed outside all the IIFE's so it can start up the controller on load.
 controller.init();
+
+
+
+
+
+
+
