@@ -26,7 +26,6 @@ main {
    padding: 20px;
 }
 .container {
-   /*   border:1px solid red; */
    max-width: 700px;
    margin: auto;
 }
@@ -35,14 +34,18 @@ main {
    border-radius: 5px;
    border: 0.5px solid #aaa;
    height: 40px;
-   width: 100%;
-   padding-left: 15px;
+   width: 99%;
    font-size: 20px;
+}
+
+.add-todo-text:focus {
+   padding-left: 10px;
 }
 
 .todo-list {
    position: relative;
 }
+
 .add-todo-button {
    margin: 20px 0;
    width: 100px;
@@ -52,6 +55,12 @@ main {
    border-radius: 3px;
    color: #fff;
    cursor: pointer;
+   transition: all 0.3s;
+}
+
+.add-todo-button:hover {
+   transform: scale(1.1);
+   font-weight: 600;
 }
 
 .img-container {
@@ -81,6 +90,7 @@ hr {
 .text {
    margin-left: 40px;
 }
+
 /* Customize the label (the container) */
 .checkbox-container {
    display: flex;
@@ -155,4 +165,9 @@ hr {
 
 .line-through {
    text-decoration: line-through;
+}
+
+.delete-icon:hover {
+   transition: all 0.3s;
+   transform: scale(1.5);
 }
