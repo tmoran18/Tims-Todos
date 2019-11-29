@@ -1,22 +1,20 @@
-
 // TODO Controller
 var todoController = (function () {
 
-  // Function constructor for the todo's. This will make each todo enter an object.
+  // Function constructor for the todo's. This will make each todo create an object.
   var Todo = function (id, description, checkbox) {
     this.id = id;
     this.description = description;
     this.checkbox = checkbox
   };
-  // The array where the Todos will be stored.
-  var allTodos = JSON.parse(localStorage.getItem('todos')) || [];
+  // The array where the Todos will be stored including stored in local storage
+  var allTodos = JSON.parse(localStorage.getItem('allTodos')) || [];
 
   return {
     // Add the todo to the array
     addTodo: function (description) {
       var newTodo, ID, checkbox;
 
-      
       checkbox = false;
       //Create new ID
       if (allTodos.length > 0) {
@@ -28,7 +26,8 @@ var todoController = (function () {
       newTodo = new Todo(ID, description, checkbox);
       // Push new todo into array
       allTodos.push(newTodo);
-      localStorage.setItem('todos', JSON.stringify(allTodos));
+      // Push the todos array into local storage
+      localStorage.setItem('allTodos', JSON.stringify(allTodos));
       // Return the new object
       return newTodo;
     },
@@ -45,26 +44,24 @@ var todoController = (function () {
       if (index !== -1) {
         allTodos.splice(index, 1);
       }
-      localStorage.setItem('todos', JSON.stringify(allTodos));
-    },
-
-    testing: function () {
-      console.log(this.getSavedTodos());
-      console.log(allTodos);
+      localStorage.setItem('allTodos', JSON.stringify(allTodos));
     },
 
     getSavedTodos: function (checkboxArray) {
-
-      
-      console.log(allTodos[0].checkbox);
-      console.log(checkboxArray);
+      // Loop over the array of checkboxes, adding their state into the main todo array
+      for (let i = 0; i < checkboxArray.length; i++) {
+        allTodos[i].checkbox = checkboxArray[i].checked;
+      }
+      // Add the allTodos array with checkbox states, back into local storage
+      localStorage.setItem('allTodos', JSON.stringify(allTodos));
     },
 
-    
+    getLocalStorage: function () {
+      // Return the local storage as an array of objects
+      return JSON.parse(localStorage.getItem('allTodos'));
+    },
   };
 })();
-
-
 
 
 // UI Controller
@@ -109,21 +106,34 @@ var UIController = (function () {
     },
 
     showSavedTodos: function (savedTodos) {
-      var html, newHtml;
+      // If the local storage array is NOT null, run html replace code, else return.
+      if (savedTodos != null) {
+        var html, newHtml;
 
-      html = '<div class="todo-list" id="%id%"><label class="checkbox-container"><input type="checkbox" id="checkbox"><span class="checkmark"></span><span class="text" id="text"> %todoString%</span></label><div class="img-container"><img class="delete-icon" id="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
-      for (var i = 0; i < savedTodos.length; i++) {
-        newHtml = html.replace('%todoString%', savedTodos[i].description);
-        newHtml = newHtml.replace('%id%', savedTodos[i].id);
-
-        var todoList = document.querySelector(classNames.todoList);
-        todoList.insertAdjacentHTML('beforeend', newHtml);
-
+        html = '<div class="todo-list" id="%id%"><label class="checkbox-container"><input type="checkbox" %checked% id="checkbox"><span class="checkmark"></span><span class="text %lineThroughClass%" id="text"> %todoString%</span></label><div class="img-container"><img class="delete-icon" id="delete-icon" src="/images/delete.png" alt="A red delete cross icon"></div></div>';
+        // Loop over the local storage array, replace descriptions and todo ids
+        for (var i = 0; i < savedTodos.length; i++) {
+          newHtml = html.replace('%todoString%', savedTodos[i].description);
+          newHtml = newHtml.replace('%id%', savedTodos[i].id);
+          // If the checkbox state is true, make the checkbox checked and text strike through.
+          // Else replace with empty strings
+          if (savedTodos[i].checkbox === true) {
+            newHtml = newHtml.replace('%checked%', 'checked');
+            newHtml = newHtml.replace('%lineThroughClass%', 'line-through');
+          } else {
+            newHtml = newHtml.replace('%checked%', ' ');
+            newHtml = newHtml.replace('%lineThroughClass%', ' ');
+          };
+          // Get and insert it in todo list container
+          var todoList = document.querySelector(classNames.todoList);
+          todoList.insertAdjacentHTML('beforeend', newHtml);
+        }
+      } else {
+        return;
       }
     },
 
-
-    // Gets the span text and the checkbox, checks if checkbox is check, if so line through
+    // Gets the span text and the checkbox, checks if checkbox is checked, if so line through
     lineThroughTodo: function (todoContainer) {
       var todoText = todoContainer.querySelector("#text");
       var checkbox = todoContainer.querySelector("#checkbox");
@@ -134,6 +144,7 @@ var UIController = (function () {
       }
     },
 
+    // Gets and displays the date
     displayDate: function () {
       var now, day, months, month, year;
       now = new Date();
@@ -148,6 +159,7 @@ var UIController = (function () {
     getClassNames: function () {
       return classNames;
     },
+
     // Clears the input text field
     clearField: function () {
       var field = document.querySelector(classNames.todoInputText);
@@ -156,7 +168,6 @@ var UIController = (function () {
     },
   };
 })();
-
 
 // App Controller
 var controller = (function (todoCtrl, UIctrl) {
@@ -174,15 +185,13 @@ var controller = (function (todoCtrl, UIctrl) {
         ctrlAddTodo();
       }
     });
+    // Listen for click on red X button, run delete todo function
     document.querySelector(classNames.todoList).addEventListener('click', ctrlDeleteTodo);
+    // Listen for change event on todo list container, run line through function
     document.querySelector(classNames.todoList).addEventListener('change', ctrlLineThroughTodo);
-    
-    // Listen for checkbox being checked
+    // Listen for change event on todo list container, run checkbox state function
     document.querySelector(classNames.todoList).addEventListener('change', ctrlCheckboxState);
-
   };
-
-  
 
   ctrlAddTodo = function () {
     var input, newTodo;
@@ -210,29 +219,23 @@ var controller = (function (todoCtrl, UIctrl) {
     }
   };
 
-  // var ctrlSavedTodos = function () {
-  //   var savedTodos = todoCtrl.getSavedTodos();
-  //   // document.querySelector('.todo-list-container').addEventListener('change', saveCheckbox);
-  //   // function saveCheckbox() {
-  //   //   var checkboxs = document.querySelectorAll('#checkbox');
-  //   //   for (let i = 0; i < checkboxs.length; i++) {
-  //   //     // console.log(savedTodos[i].checkbox);
-  //   //     savedTodos[i].checkbox.push(checkboxs[i].checked);
-  //   //     // savedTodos.push(checkbox[i].checked);
-  //   //   }
-  //   //   localStorage.setItem('savedTodos', JSON.stringify(savedTodos));
-  //   // }
-  //   UIctrl.showSavedTodos(savedTodos);
-  // };
-
-   var ctrlCheckboxState = function () {
+  var ctrlCheckboxState = function () {
     var checkboxArray = [];
-    // Push all the checkboxs into an array
-    checkboxArray.push(document.querySelectorAll('#checkbox'));
-    // Pass the array up to the get saved todos functions
+    var checkboxes = document.querySelectorAll('#checkbox');
+    // Push all the checkboxes into the checkbox array
+    for (let i = 0; i < checkboxes.length; i++) {
+      checkboxArray.push(checkboxes[i]);
+    }
+    // Pass the array up to the get saved todos function
     todoCtrl.getSavedTodos(checkboxArray);
   };
 
+  var ctrlGetSavedTodos = function () {
+    // Put the local storage array into savedTodos variable
+    var savedTodos = todoCtrl.getLocalStorage();
+    // Pass the local storage array to the showSavedTodosfunction which populates todos on refresh
+    UIctrl.showSavedTodos(savedTodos);
+  };
 
   var ctrlLineThroughTodo = function (e) {
     // Get the todo container
@@ -241,20 +244,14 @@ var controller = (function (todoCtrl, UIctrl) {
     UIctrl.lineThroughTodo(todoContainer);
   };
 
-
-
   return {
     // Init function to run any locally scoped functions in controller
     init: function () {
-      console.log("App has started");
       UIctrl.displayDate();
       setupEventListeners();
-      // ctrlSavedTodos();
-      ctrlCheckboxState();
+      ctrlGetSavedTodos();
     }
   };
-
-
 
 })(todoController, UIController);
 /* Here I am passing the todoController and UIController as two
